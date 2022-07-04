@@ -17,6 +17,9 @@ namespace ParkyAPI.Models
 
         public enum DifficultyType {Easy,Moderate,Difficult,Expert}
 
+        [Required]
+        public double Elevation { get; set; }
+
         public DifficultyType Difficulty { get; set; }
 
         [Required]

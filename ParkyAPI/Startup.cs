@@ -44,6 +44,8 @@ namespace ParkyAPI
             //trail repository
             services.AddScoped<ITrailRepository, TrailRepository>();
 
+           
+
             //adding automapper
             services.AddAutoMapper(typeof(ParkyMappings));
 
