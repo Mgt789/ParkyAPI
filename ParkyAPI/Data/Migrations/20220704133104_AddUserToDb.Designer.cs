@@ -10,7 +10,7 @@ using ParkyAPI.Data;
 namespace ParkyAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220704124143_AddUserToDb")]
+    [Migration("20220704133104_AddUserToDb")]
     partial class AddUserToDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -21,6 +21,9 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace ParkyAPI
 {
@@ -36,6 +39,9 @@ namespace ParkyAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //Add CORS
+            services.AddCors();
+
             services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
@@ -44,7 +50,8 @@ namespace ParkyAPI
             //trail repository
             services.AddScoped<ITrailRepository, TrailRepository>();
 
-           
+            //user authentication addon
+            services.AddScoped<IUserRepository, UserRepository>();
 
             //adding automapper
             services.AddAutoMapper(typeof(ParkyMappings));
@@ -62,6 +69,34 @@ namespace ParkyAPI
 
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
             services.AddSwaggerGen();
+
+            //AppSetting class call
+            var appSettingsSection = Configuration.GetSection("AppSettings");
+            var appSettings=appSettingsSection.Get<AppSettings>();
+
+            services.Configure<AppSettings>(appSettingsSection);
+            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+
+            //JWTBearer Support add
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
+
+
 
             //swagger connection
             //services.AddSwaggerGen(options =>
@@ -146,6 +181,13 @@ namespace ParkyAPI
             //});
 
             app.UseRouting();
+
+            app.UseCors(x => x
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
